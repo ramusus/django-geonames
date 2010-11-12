@@ -5,15 +5,29 @@ from django.db import connection, models
 from django.core.management import call_command, sql, color
 from django.core.management.base import NoArgsCommand
 from django.conf import settings
-from django.contrib.gis.db.backend.postgis.creation import get_cmd_options
 
 from geonames import models as m
 Alternate = m.Alternate
 Geoname = m.Geoname
 GEONAMES_DATA = os.path.abspath(os.path.join(os.path.dirname(m.__file__), 'data'))
 
+def get_cmd_options():
+    "Obtains the command-line PostgreSQL connection options for shell commands."
+    # The db_name parameter is optional
+    options = ''
+    db_settings = settings.DATABASES['default']
+    if db_settings['NAME']:
+        options += '-d %s ' % db_settings['NAME']
+    if db_settings['USER']:
+        options += '-U %s ' % db_settings['USER']
+    if db_settings['HOST']:
+        options += '-h %s ' % db_settings['HOST']
+    if db_settings['PORT']:
+        options += '-p %s ' % db_settings['PORT']
+    return options
+
 class Command(NoArgsCommand):
-    
+
     option_list = NoArgsCommand.option_list + (
         make_option('-t', '--time', action='store_true', dest='time', default=False,
                     help='Print the total time in running this command'),
@@ -30,12 +44,12 @@ class Command(NoArgsCommand):
         call_command('syncdb')
         db_table = Geoname._meta.db_table
 
-        db_opts = get_cmd_options(settings.DATABASE_NAME)
+        db_opts = get_cmd_options()
 
         fromfile_cmd = 'psql %(db_opts)s -f %(sql_file)s'
         fromfile_args = {'db_opts' : db_opts,
                          }
-        
+
         ### COPY'ing into the Geonames table ###
 
         # Executing a shell command that pipes the unzipped data to PostgreSQL
@@ -44,7 +58,7 @@ class Command(NoArgsCommand):
         # overhead from using the ORM.  Moreover, copying from a gzipped file
         # reduces disk I/O.
         copy_sql = "COPY %s (geonameid,name,alternates,fclass,fcode,country,cc2,admin1,admin2,admin3,admin4,population,elevation,topo,timezone,moddate,point) FROM STDIN;" % db_table
-        copy_cmd = 'gzcat %(gz_file)s | psql %(db_opts)s -c "%(copy_sql)s"'
+        copy_cmd = 'zcat %(gz_file)s | psql %(db_opts)s -c "%(copy_sql)s"'
         copy_args = {'gz_file' : os.path.join(GEONAMES_DATA, 'allCountries.gz'),
                      'db_opts' : db_opts,
                      'copy_sql' : copy_sql
@@ -66,11 +80,11 @@ class Command(NoArgsCommand):
 
         db_table = Alternate._meta.db_table
         copy_sql = "COPY %s (alternateid,geoname_id,isolanguage,variant,preferred,short) FROM STDIN;" % db_table
-        copy_cmd = 'gzcat %(gz_file)s | psql %(db_opts)s -c "%(copy_sql)s"'
+        copy_cmd = 'zcat %(gz_file)s | psql %(db_opts)s -c "%(copy_sql)s"'
         copy_args = {'gz_file' : os.path.join(GEONAMES_DATA, 'alternateNames.gz'),
-                     'db_opts' : get_cmd_options(settings.DATABASE_NAME),
+                     'db_opts' : get_cmd_options(),
                      'copy_sql' : copy_sql
-                     } 
+                     }
 
         if not options['no_alternates']:
             fromfile_args['sql_file'] = os.path.join(GEONAMES_DATA, 'drop_alternate_indexes.sql')

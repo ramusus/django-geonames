@@ -44,10 +44,12 @@ class Command(NoArgsCommand):
     option_list = NoArgsCommand.option_list + (
         make_option('-t', '--time', action='store_true', dest='time', default=False,
                     help='Print the total time in running this command'),
-#        make_option('--no-alternates', action='store_true', dest='no_alternates', default=False,
-#                    help='Disable loading of the Geonames alternate names data.'),
-#        make_option('--no-geonames', action='store_true', dest='no_geonames', default=False,
-#                    help='Disable loading of the Geonames data.'),
+        make_option('--country', action='store_value', dest='country', default=False,
+                    help='Download only data for specified country.'),
+        make_option('--no-alternates', action='store_true', dest='no_alternates', default=False,
+                    help='Disable loading of the Geonames alternate names data.'),
+        make_option('--no-geonames', action='store_true', dest='no_geonames', default=False,
+                    help='Disable loading of the Geonames data.'),
         )
 
     def handle_noargs(self, **options):
@@ -57,8 +59,13 @@ class Command(NoArgsCommand):
         response = urllib2.urlopen(urllib2.Request(url=GEONAMES_DUMPS_URL))
         files = re.findall(r'\<a href="(.+\.(?:txt|zip))"\>', response.read())
         for file in files:
-            if len(file) != 6:
-                continue
+
+            if options['country'] and file != '%s.zip' % options['country'] \
+                or options['no_geonames'] and file == 'allCountries.zip' \
+                or options['no_alternates'] and file == 'alternateNames.zip' \
+                or not options['country'] and len(file) == 6:
+                    continue
+
             print '\nStart download "%s" file' % file
             download(urlparse.urljoin(GEONAMES_DUMPS_URL, file), os.path.join(GEONAMES_DATA, file))
 

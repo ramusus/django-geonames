@@ -44,7 +44,7 @@ class Command(NoArgsCommand):
     option_list = NoArgsCommand.option_list + (
         make_option('-t', '--time', action='store_true', dest='time', default=False,
                     help='Print the total time in running this command'),
-        make_option('--country', action='store_value', dest='country', default=False,
+        make_option('--country', action='store', dest='country', default=False,
                     help='Download only data for specified country.'),
         make_option('--no-alternates', action='store_true', dest='no_alternates', default=False,
                     help='Disable loading of the Geonames alternate names data.'),

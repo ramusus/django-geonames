@@ -58,12 +58,24 @@ class Geoname(models.Model):
     def __unicode__(self):
         return self.name
 
+    def is_country(self):
+        return self.fcode == 'PCLI'
+
+    def get_country(self):
+        if not self.is_country():
+            return self.__class__.objects.get(fcode='PCLI', country=self.country)
+        else:
+            return self
+
 class Alternate(models.Model):
+    class Meta:
+        ordering = ('-preferred',)
+
     alternateid = models.PositiveIntegerField(primary_key=True, unique=True)
-    geoname = models.ForeignKey(Geoname)
+    geoname = models.ForeignKey(Geoname, related_name='alternate_names')
     isolanguage = models.CharField(max_length=7)
     variant = models.CharField(max_length=200, db_index=True)
-    preferred = models.BooleanField()
+    preferred = models.BooleanField(db_index=True)
     short = models.BooleanField()
 
     objects = models.GeoManager()

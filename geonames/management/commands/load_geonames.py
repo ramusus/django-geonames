@@ -10,6 +10,7 @@ from geonames import models as m
 Alternate = m.Alternate
 Geoname = m.Geoname
 GEONAMES_DATA = os.path.abspath(os.path.join(os.path.dirname(m.__file__), 'data'))
+GEONAMES_SQL = os.path.abspath(os.path.join(os.path.dirname(m.__file__), 'sql'))
 
 def get_cmd_options():
     "Obtains the command-line PostgreSQL connection options for shell commands."
@@ -66,12 +67,12 @@ class Command(NoArgsCommand):
 
         # Printing the copy command and executing it.
         if not options['no_geonames']:
-            fromfile_args['sql_file'] = os.path.join(GEONAMES_DATA, 'drop_geoname_indexes.sql')
+            fromfile_args['sql_file'] = os.path.join(GEONAMES_SQL, 'drop_geoname_indexes.sql')
             print(fromfile_cmd % fromfile_args)
             os.system(fromfile_cmd % fromfile_args)
             print(copy_cmd % copy_args)
             os.system(copy_cmd % copy_args)
-            fromfile_args['sql_file'] = os.path.join(GEONAMES_DATA, 'create_geoname_indexes.sql')
+            fromfile_args['sql_file'] = os.path.join(GEONAMES_SQL, 'create_geoname_indexes.sql')
             print(fromfile_cmd % fromfile_args)
             os.system(fromfile_cmd % fromfile_args)
             print('Finished PostgreSQL `COPY` from Geonames all countries data file.')
@@ -87,13 +88,13 @@ class Command(NoArgsCommand):
                      }
 
         if not options['no_alternates']:
-            fromfile_args['sql_file'] = os.path.join(GEONAMES_DATA, 'drop_alternate_indexes.sql')
+            fromfile_args['sql_file'] = os.path.join(GEONAMES_SQL, 'drop_alternate_indexes.sql')
             print(fromfile_cmd % fromfile_args)
             os.system(fromfile_cmd % fromfile_args)
             print(copy_cmd % copy_args)
             os.system(copy_cmd % copy_args)
             print('Finished PostgreSQL `COPY` from Geonames alternate names data file.')
-            fromfile_args['sql_file'] = os.path.join(GEONAMES_DATA, 'create_alternate_indexes.sql')
+            fromfile_args['sql_file'] = os.path.join(GEONAMES_SQL, 'create_alternate_indexes.sql')
             print(fromfile_cmd % fromfile_args)
             os.system(fromfile_cmd % fromfile_args)
 

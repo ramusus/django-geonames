@@ -1,7 +1,7 @@
 from django.contrib.gis.db import models
 
 class BigIntegerField(models.PositiveIntegerField):
-    def db_type(self):
+    def db_type(self, connection):
         return 'bigint'
 
 ### Geonames.org Models ###

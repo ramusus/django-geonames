@@ -1,8 +1,13 @@
 from django.contrib.gis.db import models
+from django.conf import settings
 
 class BigIntegerField(models.PositiveIntegerField):
     def db_type(self, connection):
         return 'bigint'
+
+if 'south' in settings.INSTALLED_APPS:
+    from south.modelsinspector import add_introspection_rules
+    add_introspection_rules([], ["^geonames\.models\.BigIntegerField"])
 
 ### Geonames.org Models ###
 
@@ -34,6 +39,19 @@ class TimeZone(models.Model):
     def __unicode__(self):
         return self.tzid
 
+class GeonameManager(models.GeoManager):
+    def countries(self, *args, **kwargs):
+        '''
+        Filter returns only countries
+        '''
+        return super(GeonameManager, self).filter(fcode__in=['PCLI']).filter(*args, **kwargs)
+
+    def continents(self, *args, **kwargs):
+        '''
+        Filter returns only continents
+        '''
+        return super(GeonameManager, self).filter(fcode__in=['CONT']).filter(*args, **kwargs)
+
 class Geoname(models.Model):
     geonameid = models.PositiveIntegerField(primary_key=True, unique=True)
     name = models.CharField(max_length=200, db_index=True)
@@ -53,13 +71,16 @@ class Geoname(models.Model):
     moddate = models.DateField('Date of Last Modification')
     point = models.PointField(null=True)
 
-    objects = models.GeoManager()
+    objects = GeonameManager()
 
     def __unicode__(self):
         return self.name
 
     def is_country(self):
         return self.fcode == 'PCLI'
+
+    def is_continent(self):
+        return self.fcode == 'CONT'
 
     def get_country(self):
         if not self.is_country():

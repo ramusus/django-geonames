@@ -84,7 +84,10 @@ class Geoname(models.Model):
 
     def get_country(self):
         if not self.is_country():
-            return self.__class__.objects.get(fcode='PCLI', country=self.country)
+            try:
+                return self.__class__.objects.get(fcode='PCLI', country=self.country)
+            except self.__class__.DoesNotExist:
+                return None
         else:
             return self
 

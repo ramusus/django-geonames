@@ -41,7 +41,14 @@ class Command(NoArgsCommand):
                 row = dict(zip(in_fields, map(str.strip, line.split('\t'))))
                 if options['lengths']:
                     for k in len_fields: lengths[k] = max(len(row[k]), lengths[k])
-
+                    
+                # fixing trailing slash problem in geonames data
+                try:
+                    if row['name'][-1:] == "\\":
+                        row['name'] = row['name'][0:-1]
+                except:
+                    pass
+                    
                 try:
                     # Setting integers to 0 so they won't have to be NULL.
                     for key in ('population', 'elevation', 'topo'):

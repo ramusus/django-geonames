@@ -59,7 +59,7 @@ class Command(NoArgsCommand):
         # overhead from using the ORM.  Moreover, copying from a gzipped file
         # reduces disk I/O.
         copy_sql = "COPY %s (geonameid,name,alternates,fclass,fcode,country,cc2,admin1,admin2,admin3,admin4,population,elevation,topo,timezone,moddate,point) FROM STDIN;" % db_table
-        copy_cmd = 'zcat %(gz_file)s | psql %(db_opts)s -c "%(copy_sql)s"'
+        copy_cmd = 'gunzip -c %(gz_file)s | psql %(db_opts)s -c "%(copy_sql)s"'
         copy_args = {'gz_file' : os.path.join(GEONAMES_DATA, 'allCountries.gz'),
                      'db_opts' : db_opts,
                      'copy_sql' : copy_sql
